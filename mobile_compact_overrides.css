@@ -1,4 +1,4 @@
-/* Mobile Compact Overrides v2.6 — fix text overlap (wrap + clamp) */
+/* Mobile Compact Overrides v2.7 — text + DEAL/NEW ROUND de-dup */
 @media (max-width:720px){
   :root{ --chipH:36px; --padH:116px; }
   .table-surface{ height: calc(100vh - 80px) !important; }
@@ -24,17 +24,16 @@
     overflow:hidden !important; text-overflow:ellipsis !important;
   }
 
-  /* Button content must not overflow its own grid cell */
+  /* Button content clamp (no overflow to neighbours) */
   .btn{
     position:relative !important;
-    display:block !important;           /* avoid flex min-content weirdness */
+    display:block !important;
     width:100% !important; max-width:100% !important;
     padding:8px 8px !important;
     font-size:12.5px !important; line-height:1.12 !important;
     border-radius:9px !important; min-width:0 !important; box-sizing:border-box !important;
     text-align:center !important; white-space:normal !important; word-break:break-word !important;
-    overflow:hidden !important;         /* prevent spill into neighbors */
-    text-overflow:ellipsis !important;
+    overflow:hidden !important; text-overflow:ellipsis !important;
     box-shadow:0 3px 8px rgba(0,0,0,.22) !important;
   }
 
@@ -64,11 +63,22 @@
   #btnContinue{ grid-column:5 !important; grid-row:3 !important; }
   #btnInsurance{ grid-column:6 !important; grid-row:3 !important; }
 
-  /* Long labels slightly smaller */
-  #btnEvenMoney, #btnSurrender, #btnContinue{ font-size:11.4px !important; }
-  #btnInsurance{ font-size:11px !important; }
+  /* Long labels size tweaks */
+  #btnEvenMoney, #btnContinue{ font-size:11.4px !important; }
 
-  /* Chip rack (centered + safe width) */
+  /* Your request: SURRENDER & INSURANCE to 9px */
+  #btnSurrender{ font-size:9px !important; }
+  #btnInsurance{ font-size:9px !important; }
+
+  /* If DEAL is visible (not .hidden), hide NEW ROUND to avoid overlap */
+  #btnDeal:not(.hidden) ~ #btnNewRound{ display:none !important; }
+
+  /* Safety: if both are somehow force-visible, move NEW ROUND down/right */
+  #btnDeal:not(.hidden) + #btnNewRound:not(.hidden){
+    grid-column:6 !important; grid-row:3 !important;
+  }
+
+  /* Chip rack */
   .chips{
     position:absolute !important; left:50% !important; right:auto !important; transform:translateX(-50%) !important;
     width: calc(100% - 30px) !important; box-sizing: border-box !important;
