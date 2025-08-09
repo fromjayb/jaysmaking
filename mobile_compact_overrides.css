@@ -1,18 +1,19 @@
-/* Mobile Compact Overrides v2.3 — ensure DOUBLE visible (no right-edge clipping) */
+/* Mobile Compact Overrides v2.4 — targeted width tuning */
 @media (max-width:720px){
   :root{ --chipH:36px; --padH:116px; }
   .table-surface{ height: calc(100vh - 80px) !important; }
 
   .action-pad{
     display:grid !important;
-    grid-template-columns: 56px 86px repeat(4, minmax(0,1fr)) !important;
+    /* col1 CLEAR | col2 DOUBLE/SPLIT | col3..6 controls (col4/5 slightly narrower) */
+    grid-template-columns: 44px 78px minmax(0,1fr) minmax(0,0.88fr) minmax(0,0.88fr) minmax(0,1fr) !important;
     grid-auto-rows:minmax(40px,auto) !important;
-    grid-auto-flow: dense !important;
-    column-gap:5px !important; row-gap:6px !important;
+    grid-auto-flow:dense !important;
+    column-gap:4px !important; row-gap:6px !important;
     padding:6px !important; border-radius:12px !important;
     bottom: calc(env(safe-area-inset-bottom,0px) + var(--chipH) + 6px) !important;
     left:50% !important; right:auto !important; transform:translateX(-50%) !important;
-    width: calc(100% - 28px) !important; box-sizing: border-box !important;
+    width: calc(100% - 30px) !important; box-sizing: border-box !important;
   }
   .action-pad .toolbar{ display:contents !important; }
   .action-pad > div[style*="height:8px"]{ display:none !important; }
@@ -20,28 +21,31 @@
 
   .btn{
     padding:8px 8px !important; font-size:12.5px !important; border-radius:9px !important;
-    min-width:0 !important; /* allow shrink inside grid */
+    min-width:0 !important; box-sizing:border-box !important; white-space:nowrap !important;
     box-shadow:0 3px 8px rgba(0,0,0,.22) !important;
   }
 
-  /* Vertical CLEAR (two rows) */
+  /* CLEAR: vertical two-row */
   #btnClear{
     grid-column:1 !important; grid-row:2 / span 2 !important;
     writing-mode: vertical-rl !important; transform: rotate(180deg) !important;
-    text-align:center !important; letter-spacing:1px !important; padding:10px 6px !important;
+    text-align:center !important; letter-spacing:.5px !important; padding:10px 4px !important;
   }
 
-  /* DOUBLE/SPLIT vertical stack (col 2) */
+  /* DOUBLE/SPLIT column (col2) */
   #btnDouble{ grid-column:2 !important; grid-row:2 !important; }
   #btnSplit{ grid-column:2 !important; grid-row:3 !important; }
 
-  /* Row 2 */
+  /* Narrower horizontal padding for DEAL/SURRENDER (col4) and HIT/CONTINUE (col5) */
+  #btnDeal, #btnSurrender, #btnHit, #btnContinue{ padding-inline:6px !important; }
+
+  /* Row 2 (main) */
   #btnRebet{ grid-column:3 !important; grid-row:2 !important; }
   #btnDeal, #btnNewRound{ grid-column:4 !important; grid-row:2 !important; }
   #btnHit{ grid-column:5 !important; grid-row:2 !important; }
   #btnStand{ grid-column:6 !important; grid-row:2 !important; }
 
-  /* Row 3 */
+  /* Row 3 (secondary) */
   #btnEvenMoney{ grid-column:3 !important; grid-row:3 !important; }
   #btnSurrender{ grid-column:4 !important; grid-row:3 !important; }
   #btnContinue{ grid-column:5 !important; grid-row:3 !important; }
@@ -50,7 +54,7 @@
   /* Chip rack (centered + safe width) */
   .chips{
     position:absolute !important; left:50% !important; right:auto !important; transform:translateX(-50%) !important;
-    width: calc(100% - 28px) !important; box-sizing: border-box !important;
+    width: calc(100% - 30px) !important; box-sizing: border-box !important;
     padding:2px 4px !important; gap:5px !important;
   }
   .chip{ width:35px !important; height:35px !important; border-width:3px !important; font-size:11px !important; }
