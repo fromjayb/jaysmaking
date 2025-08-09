@@ -1,4 +1,4 @@
-/* Mobile Compact Overrides v2.11 — NEW ROUND visibility synced to DEAL (CSS-only) */
+/* Mobile Compact Overrides v2.12 — JS-driven visibility for DEAL/NEW ROUND */
 @media (max-width:720px){
   :root{ --chipH:36px; --padH:116px; }
   .table-surface{ height: calc(100vh - 80px) !important; }
@@ -50,12 +50,22 @@
   /* Slimmer padding for cols 4 & 5 */
   #btnDeal, #btnSurrender, #btnHit, #btnContinue{ padding-inline:6px !important; }
 
-  /* Row 2 */
+  /* Row 2 — same slot for DEAL/NEW ROUND; visibility via .hidden only */
   #btnRebet{ grid-column:3 !important; grid-row:2 !important; }
   #btnDeal{ grid-column:4 !important; grid-row:2 !important; }
-  #btnNewRound{ grid-column:4 !important; grid-row:2 !important; }  /* same slot; we'll toggle via CSS below */
-  #btnHit{ grid-column:5 !important; grid-row:2 !important; }
-  #btnStand{ grid-column:6 !important; grid-row:2 !important; }
+  #btnNewRound{ grid-column:4 !important; grid-row:2 !important; }
+
+  /* Respect JS toggle: .hidden hides, not-hidden shows */
+  #btnDeal.hidden{ display:none !important; }
+  #btnDeal:not(.hidden){ display:block !important; }
+  #btnNewRound.hidden{ display:none !important; }
+  #btnNewRound:not(.hidden){ display:block !important; }
+
+  /* Safety: if both end up visible accidentally, move NEW ROUND away to avoid overlap */
+  #btnDeal:not(.hidden) + #btnNewRound:not(.hidden),
+  #btnDeal:not(.hidden) ~ #btnNewRound:not(.hidden){
+    grid-column:6 !important; grid-row:3 !important;
+  }
 
   /* Row 3 */
   #btnEvenMoney{ grid-column:3 !important; grid-row:3 !important; }
@@ -71,15 +81,6 @@
   }
   #btnSurrender::after{ content:"서렌더"; }
   #btnContinue::after{ content:"진행"; }
-
-  /* ===== NEW ROUND visibility control (CSS only) ===== */
-  /* Baseline: hide NEW ROUND to avoid overlap */
-  #btnNewRound{ display:none !important; }
-  /* When DEAL is hidden, show NEW ROUND (even if it also has .hidden) */
-  #btnDeal.hidden ~ #btnNewRound{ display:block !important; }
-  #btnDeal.hidden ~ #btnNewRound.hidden{ display:block !important; }
-  /* If DEAL is visible, keep NEW ROUND hidden */
-  #btnDeal:not(.hidden) ~ #btnNewRound{ display:none !important; }
 
   /* Chip rack */
   .chips{
