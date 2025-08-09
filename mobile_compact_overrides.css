@@ -1,44 +1,62 @@
-/* Mobile Compact Patch for jay's blackjack v1.7.5
-   - UI-only: reduces vertical footprint on small screens
-   - Drop this file next to index.html and add:
-     <link rel="stylesheet" href="mobile_compact_overrides.css">
+/* Mobile Compact Overrides v2 — CSS-only
+   Goal: more space for cards, 2-row button grid, ~30% smaller chips.
+   Place this AFTER any inline <style>. If you already added an older
+   mobile_compact_overrides.css, just replace that file with this content.
 */
-@media (max-width: 720px){
+@media (max-width:720px){
   :root{
-    --chipH: 52px; /* smaller chip bar */
-    --padH: 132px; /* smaller action pad */
+    --chipH: 36px;  /* smaller chip bar */
+    --padH: 112px;  /* smaller action pad */
   }
-  /* Action pad */
+
+  /* Expand table surface so dealer/player piles don't collide */
+  .table-surface{ height: calc(100vh - 80px) !important; }
+
+  /* Action pad: 6 columns => 2 rows (6 + 5 items) after the status pill */
   .action-pad{
-    gap:6px;
-    padding:6px;
-    border-radius:12px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--chipH) + 6px);
+    display:grid !important;
+    grid-template-columns:repeat(6,1fr) !important;
+    gap:6px !important;
+    padding:6px !important;
+    border-radius:12px !important;
+    bottom: calc(env(safe-area-inset-bottom,0px) + var(--chipH) + 6px) !important;
   }
-  .action-pad .toolbar{ gap:6px; grid-template-columns:repeat(3,1fr) }
+  /* Flatten inner toolbar so its buttons join the grid */
+  .action-pad .toolbar{ display:contents !important; }
+  /* Remove the spacer div used in some builds */
+  .action-pad > div[style*="height:8px"]{ display:none !important; }
+
+  /* Status pill spans full width on top row */
   .action-pad .footer-status{
-    padding:7px 8px;
-    margin:0 0 4px 0;
-    font-size:13px;
+    grid-column:1 / -1 !important;
+    padding:6px 8px !important;
+    margin:0 0 4px 0 !important;
+    font-size:12.5px !important;
   }
-  /* Buttons */
+
+  /* Buttons: compact but tappable */
   .btn{
-    padding:8px 9px;
-    border-radius:9px;
-    font-size:13px;
-    min-width:auto;
-    box-shadow:0 3px 8px rgba(0,0,0,.22);
+    padding:8px 8px !important;
+    font-size:12.5px !important;
+    border-radius:9px !important;
+    min-width:auto !important;
+    box-shadow:0 3px 8px rgba(0,0,0,.22) !important;
   }
-  /* Chips */
-  .chips{ padding:4px 6px; gap:6px }
-  .chip{ width:50px; height:50px; border-width:3px; font-size:13px }
-  /* Bets/stack tokens */
-  .bet{ width:60px; height:60px }
-  .bet.small{ width:50px; height:50px }
-  .betchip{ width:26px; height:26px }
-  /* Cards */
-  .card{ width:56px; height:82px }
-  .pile{ min-height:90px }
-  /* Seat a bit higher (dynamic vars still used) */
-  .seat-area{ bottom: calc(env(safe-area-inset-bottom, 0px) + var(--chipH) + var(--padH) + 10px) }
+
+  /* Chip rack: ~30% smaller chips */
+  .chips{ padding:2px 4px !important; gap:5px !important; }
+  .chip{
+    width:35px !important; height:35px !important;
+    border-width:3px !important;
+    font-size:11px !important;
+  }
+
+  /* Keep seat just above the pads; dynamic vars still apply */
+  .seat-area{ bottom: calc(env(safe-area-inset-bottom,0px) + var(--chipH) + var(--padH) + 8px) !important; }
+
+  /* Keep banner above pads */
+  .info-banner{ bottom: calc(env(safe-area-inset-bottom,0px) + var(--chipH) + var(--padH) + 18px) !important; }
+
+  /* Optional: slightly tighter piles */
+  .pile{ min-height:92px !important; }
 }
