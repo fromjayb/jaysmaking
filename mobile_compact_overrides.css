@@ -1,4 +1,4 @@
-/* Mobile Compact Overrides v2.10 — NEW ROUND restored, labels kept */
+/* Mobile Compact Overrides v2.11 — NEW ROUND visibility synced to DEAL (CSS-only) */
 @media (max-width:720px){
   :root{ --chipH:36px; --padH:116px; }
   .table-surface{ height: calc(100vh - 80px) !important; }
@@ -53,7 +53,7 @@
   /* Row 2 */
   #btnRebet{ grid-column:3 !important; grid-row:2 !important; }
   #btnDeal{ grid-column:4 !important; grid-row:2 !important; }
-  #btnNewRound{ grid-column:4 !important; grid-row:2 !important; }  /* restored; JS toggles visibility */
+  #btnNewRound{ grid-column:4 !important; grid-row:2 !important; }  /* same slot; we'll toggle via CSS below */
   #btnHit{ grid-column:5 !important; grid-row:2 !important; }
   #btnStand{ grid-column:6 !important; grid-row:2 !important; }
 
@@ -71,6 +71,15 @@
   }
   #btnSurrender::after{ content:"서렌더"; }
   #btnContinue::after{ content:"진행"; }
+
+  /* ===== NEW ROUND visibility control (CSS only) ===== */
+  /* Baseline: hide NEW ROUND to avoid overlap */
+  #btnNewRound{ display:none !important; }
+  /* When DEAL is hidden, show NEW ROUND (even if it also has .hidden) */
+  #btnDeal.hidden ~ #btnNewRound{ display:block !important; }
+  #btnDeal.hidden ~ #btnNewRound.hidden{ display:block !important; }
+  /* If DEAL is visible, keep NEW ROUND hidden */
+  #btnDeal:not(.hidden) ~ #btnNewRound{ display:none !important; }
 
   /* Chip rack */
   .chips{
