@@ -1,4 +1,4 @@
-/* Mobile Compact Overrides v2.5 — text wrapping & legibility */
+/* Mobile Compact Overrides v2.6 — fix text overlap (wrap + clamp) */
 @media (max-width:720px){
   :root{ --chipH:36px; --padH:116px; }
   .table-surface{ height: calc(100vh - 80px) !important; }
@@ -6,7 +6,7 @@
   .action-pad{
     display:grid !important;
     grid-template-columns: 44px 78px minmax(0,1fr) minmax(0,0.88fr) minmax(0,0.88fr) minmax(0,1fr) !important;
-    grid-auto-rows:minmax(44px,auto) !important; /* a bit taller to allow 2 lines */
+    grid-auto-rows:minmax(44px,auto) !important;
     grid-auto-flow:dense !important;
     column-gap:4px !important; row-gap:6px !important;
     padding:6px !important; border-radius:12px !important;
@@ -17,27 +17,24 @@
   .action-pad .toolbar{ display:contents !important; }
   .action-pad > div[style*="height:8px"]{ display:none !important; }
 
-  /* Status pill wraps nicely */
   .action-pad .footer-status{
     grid-column:1 / -1 !important;
-    padding:6px 8px !important;
-    margin:0 0 4px 0 !important;
-    font-size:12.2px !important;
-    white-space:normal !important;
-    line-height:1.2 !important;
-    text-wrap:balance !important;
+    padding:6px 8px !important; margin:0 0 4px 0 !important; font-size:12.2px !important;
+    white-space:normal !important; line-height:1.2 !important; text-wrap:balance !important;
+    overflow:hidden !important; text-overflow:ellipsis !important;
   }
 
-  /* Buttons — allow 2-line wrap and center */
+  /* Button content must not overflow its own grid cell */
   .btn{
+    position:relative !important;
+    display:block !important;           /* avoid flex min-content weirdness */
+    width:100% !important; max-width:100% !important;
     padding:8px 8px !important;
-    font-size:12.5px !important;
-    border-radius:9px !important;
-    min-width:0 !important; box-sizing:border-box !important;
-    white-space:normal !important;        /* allow wrapping */
-    line-height:1.12 !important;
-    text-align:center !important;
-    display:flex !important; align-items:center !important; justify-content:center !important;
+    font-size:12.5px !important; line-height:1.12 !important;
+    border-radius:9px !important; min-width:0 !important; box-sizing:border-box !important;
+    text-align:center !important; white-space:normal !important; word-break:break-word !important;
+    overflow:hidden !important;         /* prevent spill into neighbors */
+    text-overflow:ellipsis !important;
     box-shadow:0 3px 8px rgba(0,0,0,.22) !important;
   }
 
@@ -48,11 +45,11 @@
     text-align:center !important; letter-spacing:.5px !important; padding:10px 4px !important;
   }
 
-  /* DOUBLE/SPLIT vertical stack (col 2) */
+  /* DOUBLE/SPLIT vertical stack */
   #btnDouble{ grid-column:2 !important; grid-row:2 !important; }
   #btnSplit{  grid-column:2 !important; grid-row:3 !important; }
 
-  /* Narrower horizontal padding for columns 4 & 5 buttons */
+  /* Slimmer padding for columns 4 & 5 buttons */
   #btnDeal, #btnSurrender, #btnHit, #btnContinue{ padding-inline:6px !important; }
 
   /* Row 2 */
@@ -67,9 +64,9 @@
   #btnContinue{ grid-column:5 !important; grid-row:3 !important; }
   #btnInsurance{ grid-column:6 !important; grid-row:3 !important; }
 
-  /* Slightly smaller fonts for long labels, allow break-word for single long words */
-  #btnEvenMoney, #btnSurrender, #btnContinue{ font-size:11.6px !important; }
-  #btnInsurance{ font-size:11px !important; word-break:break-word !important; }
+  /* Long labels slightly smaller */
+  #btnEvenMoney, #btnSurrender, #btnContinue{ font-size:11.4px !important; }
+  #btnInsurance{ font-size:11px !important; }
 
   /* Chip rack (centered + safe width) */
   .chips{
