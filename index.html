@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>jay's blackjack v1.7.5</title>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --felt:#0b3d2e; --felt-2:#0f4d3b; --gold:#caa96b; --ok:#2ecc71; --danger:#c0392b; }
+  html,body{margin:0;padding:0;height:100%;background:linear-gradient(180deg,var(--felt),var(--felt-2));color:#fff;
+    font-family:'Nanum Gothic','Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{display:flex;flex-direction:column;min-height:100vh}
+  header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,0));backdrop-filter: blur(4px)}
+  header .title{font-weight:800;letter-spacing:.2px}
+  header .meta{display:flex;gap:12px;align-items:center;font-size:13px;flex-wrap:wrap}
+  .badge{padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1)}
+  .gold{color:var(--gold)}
+  .stats{padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);font-weight:800;opacity:.92}
+  .table{flex:1;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:flex-start;padding:16px}
+  .table-surface{position:relative;width:min(1200px,96vw);height:min(720px,78vh);background:radial-gradient(1200px 600px at 50% 20%, rgba(255,255,255,.12), rgba(255,255,255,0)), var(--felt);
+    border-radius:24px;box-shadow: inset 0 0 0 2px rgba(202,169,107,.28), 0 10px 30px rgba(0,0,0,.35);border: 10px solid #5d4233;overflow:hidden}
+  .dealer-area{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:1}
+  .dealer-label{font-weight:700;opacity:.9}
+  .cards{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+  .seat-area{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;z-index:1}
+  .seat{width:260px;min-height:240px;padding:10px;border-radius:16px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.1);box-shadow: inset 0 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:10px}
+  .seat .label{font-size:14px; opacity:.85; font-weight:700}
+  .bet-circles{display:flex;gap:10px;align-items:center}
+  .bet{width:84px;height:84px;border-radius:999px;border:3px solid var(--gold);position:relative;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.15);overflow:visible}
+  .bet.small{width:64px;height:64px;border-color:#9bb8ff}
+  .bet .amt{font-weight:800;position:absolute;bottom:-18px;opacity:.95}
+  .stack{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+  .betchip{position:absolute;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;border:3px solid rgba(255,255,255,.9);background:#dfe6e9;color:#222;box-shadow:0 4px 10px rgba(0,0,0,.35);pointer-events:none;transform:translate(-50%,-50%)}
+  .betchip[data-v='1']{background:#ecf0f1}
+  .betchip[data-v='5']{background:#f9ca24}
+  .betchip[data-v='25']{background:#6ab04c;color:#0b2c10}
+  .betchip[data-v='100']{background:#0984e3}
+  .betchip[data-v='500']{background:#8e44ad}
+  .action-pad{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:3500}
+  .btn{border:none;padding:14px 16px;border-radius:12px;min-width:120px;background:rgba(255,255,255,.1);color:#fff;font-weight:800;letter-spacing:.2px;border:1px solid rgba(255,255,255,.18);cursor:pointer;transition:.2s;box-shadow: 0 4px 12px rgba(0,0,0,.25)}
+  .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.18)}
+  .btn:disabled{opacity:.5;pointer-events:none}
+  .btn.primary{background:linear-gradient(180deg, rgba(212,180,110,.9), rgba(212,180,110,.7));color:#1d1b16;border-color:rgba(0,0,0,.2)}
+  .btn.danger{background:linear-gradient(180deg, rgba(192,57,43,.95), rgba(192,57,43,.8))}
+  .btn.ok{background:linear-gradient(180deg, rgba(46,204,113,.95), rgba(46,204,113,.8)); color:#112015}
+  .btn.alt{background:linear-gradient(180deg, rgba(146,175,199,.95), rgba(146,175,199,.8)); color:#142331}
+  .btn.new{background:linear-gradient(180deg, rgba(67, 193, 116,.95), rgba(67, 193, 116,.8)); color:#0d2416}
+  .btn.em{background:linear-gradient(180deg, rgba(255,199,102,.95), rgba(255,199,102,.8)); color:#2a1c07}
+  .info-banner{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.25);padding:12px 16px;border-radius:16px;font-weight:800;max-width:min(880px,94vw);text-align:center;line-height:1.4;z-index:3000;pointer-events:auto;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .info-banner .m{font-size:14px;opacity:.95;white-space:pre-line}
+  .chips{position:absolute;left:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:1}
+  .chip{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;border:4px solid rgba(255,255,255,.8);background:#dfe6e9; color:#222; cursor:grab; box-shadow:0 6px 14px rgba(0,0,0,.35)}
+  .chip:active{cursor:grabbing}
+  .chip[data-v='1']{background:#ecf0f1}
+  .chip[data-v='5']{background:#f9ca24}
+  .chip[data-v='25']{background:#6ab04c;color:#0b2c10}
+  .chip[data-v='100']{background:#0984e3}
+  .chip[data-v='500']{background:#8e44ad}
+  .tot{font-weight:800;letter-spacing:.2px;padding:2px 8px;border-radius:8px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.18)}
+  .card{
+  width:78px;height:112px;border-radius:10px;
+  background:linear-gradient(180deg,#ffffff,#f6f6f6);
+  color:#111;border:1.5px solid rgba(0,0,0,.35);
+  display:block; position:relative; padding:0; box-shadow:0 4px 12px rgba(0,0,0,.35); overflow:hidden
+}
+  
+  
+  
+  
+  .card.red{color:#c0392b}
+  .card.back{background: repeating-linear-gradient(45deg, #234, #234 8px, #2c3e50 8px, #2c3e50 16px);border-color:#1b2b3a}
+  .pile{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap;min-height:120px}
+  .hidden{display:none !important}
+  .result-toast{position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.18);padding:10px 14px;border-radius:12px;font-weight:800;z-index:3000}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .small-note{font-size:12px;opacity:.9;white-space:pre-line}
+  .ins-window,.surr-window{animation: pulse 1.2s infinite}
+  @keyframes pulse{0%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.03);}100%{transform:translateX(-50%) scale(1);}}
+  @media (max-width: 980px){ .seat{width:210px;} .card{
+  width:78px;height:112px;border-radius:10px;
+  background:linear-gradient(180deg,#ffffff,#f6f6f6);
+  color:#111;border:1.5px solid rgba(0,0,0,.35);
+  display:block; position:relative; padding:0; box-shadow:0 4px 12px rgba(0,0,0,.35); overflow:hidden
+} .chip{width:60px;height:60px} .btn{min-width:110px;padding:12px 12px} }
+  .shoe{position:absolute; right:28px; top:20px; width:120px; height:70px;background:linear-gradient(180deg,#252b33,#161b21);border:2px solid #111; border-radius:10px; box-shadow:inset 0 0 20px rgba(255,255,255,.08), 0 8px 20px rgba(0,0,0,.4)}
+  .shoe::after{content:""; position:absolute; right:8px; top:16px; width:28px; height:38px; background:#1a2530; border-radius:4px; box-shadow: inset 0 0 12px rgba(0,0,0,.6)}
+  .anim-layer{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  .flying{position:absolute; width:78px; height:112px; border-radius:10px; background: repeating-linear-gradient(45deg, #234, #234 8px, #2c3e50 8px, #2c3e50 16px); border:2px solid #1b2b3a; box-shadow:0 6px 18px rgba(0,0,0,.5); transition: transform .26s cubic-bezier(.2,.8,.2,1) }
+  .drop-target{outline:2px dashed rgba(255,255,255,.25)}
+
+  /* Dealer insurance pot */
+  .ins-pot{position:absolute; top:88px; right:34px; width:84px; height:84px; border-radius:50%; border:2px dashed rgba(255,255,255,.35); background:rgba(255,255,255,.08); display:flex; align-items:center; justify-content:center; z-index:2}
+  .ins-pot .stack{position:absolute;left:0;top:0;width:100%;height:100%;}
+
+  /* Footer status bar */
+  .footer-status{
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom: calc(var(--safe-b) + var(--chipH) + 6px);
+    width: 66vw; max-width:520px; z-index:4600;
+    background:rgba(0,0,0,.46); border:1px solid rgba(255,255,255,.2);
+    border-radius:12px; padding:10px 12px; text-align:center; font-weight:800;
+  }
+
+  /* Recharge modal */
+  .modal{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.6); z-index:4000;}
+  .modal .panel{width:min(520px,92vw); background:rgba(0,0,0,.85); border:1px solid rgba(255,255,255,.2); border-radius:16px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  .modal h3{margin:0 0 8px 0; font-size:18px; font-weight:800;}
+  .modal p{margin:0 0 12px 0; opacity:.92; white-space:pre-line}
+  .modal .row{display:flex; gap:10px; align-items:center}
+  .modal input{flex:1; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.1); color:#fff; font-weight:800; letter-spacing:2px; text-align:center}
+
+  /* ===== Mobile-first layout ===== */
+  @media (max-width: 720px){
+    header{ padding:10px 12px }
+    header .meta{ gap:8px; font-size:12px }
+    .stats{ display:none } /* keep header compact on mobile */
+    .table{ padding:10px }
+    .table-surface{
+      width:100vw;
+      height:calc(100vh - 110px); /* header + margins approx */
+      border-width:8px;
+      border-radius:18px;
+    }
+    .dealer-area{ top:10px }
+    .seat-area{ bottom:110px } /* leave room for chips + buttons */
+    .seat{ width:92vw; min-height:190px; }
+    .pile{ min-height:100px }
+    .card{
+  width:78px;height:112px;border-radius:10px;
+  background:linear-gradient(180deg,#ffffff,#f6f6f6);
+  color:#111;border:1.5px solid rgba(0,0,0,.35);
+  display:block; position:relative; padding:0; box-shadow:0 4px 12px rgba(0,0,0,.35); overflow:hidden
+}
+    .bet{ width:68px; height:68px }
+    .bet.small{ width:56px; height:56px }
+    .betchip{ width:30px; height:30px }
+    .chip{ width:56px; height:56px; font-size:14px; }
+    .action-pad{
+      position:absolute; left:50%; top:auto; bottom:56px; transform:translateX(-50%);
+      width:calc(100% - 20px);
+      display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; z-index:3500;
+    }
+    .action-pad .toolbar{ grid-column:1/-1; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px }
+    .btn{ min-width:auto; padding:12px 10px; border-radius:10px; font-size:14px }
+    .chips{
+      position:absolute; left:50%; top:auto; bottom:6px; transform:translateX(-50%);
+      flex-direction:row; gap:8px; width:calc(100% - 20px); overflow-x:auto; padding:6px 8px;
+      background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.15); border-radius:12px;
+    }
+    .info-banner{ left:50%; transform:translateX(-50%); top:auto; bottom:180px; max-width:92vw }
+    .footer-status{
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom: calc(var(--safe-b) + var(--chipH) + 6px);
+    width: 66vw; max-width:520px; z-index:4600;
+    background:rgba(0,0,0,.46); border:1px solid rgba(255,255,255,.2);
+    border-radius:12px; padding:10px 12px; text-align:center; font-weight:800;
+  }
+    .ins-pot{ right:10px; top:78px; width:72px; height:72px }
+    .shoe{ right:10px; top:10px; width:100px; height:60px }
+  }
+
+
+  /* ===== Mobile cleanup overrides ===== */
+  :root{
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --chipH: 60px;
+    --padH: 170px;
+  }
+  @media (max-width: 720px){
+    .table{ padding:10px }
+    .table-surface{
+      width:100vw;
+      height:calc(100vh - 104px);
+      border-width:8px;
+      border-radius:18px;
+    }
+    .dealer-area{ top:10px }
+    /* keep seat well above the pads */
+    .seat-area{ bottom: calc(var(--safe-b) + var(--chipH) + var(--padH) + 16px); }
+    .seat{ width:92vw; min-height:190px; }
+    .bet{ width:64px; height:64px } .bet.small{ width:54px; height:54px }
+    .betchip{ width:28px; height:28px }
+    .card{
+  width:78px;height:112px;border-radius:10px;
+  background:linear-gradient(180deg,#ffffff,#f6f6f6);
+  color:#111;border:1.5px solid rgba(0,0,0,.35);
+  display:block; position:relative; padding:0; box-shadow:0 4px 12px rgba(0,0,0,.35); overflow:hidden
+}
+    .pile{ min-height:96px }
+
+    /* Action pad as frosted panel */
+    .action-pad{
+      position:absolute; left:50%; top:auto; bottom: calc(var(--safe-b) + var(--chipH) + 8px); transform:translateX(-50%);
+      width:calc(100% - 20px);
+      display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; z-index:5000;
+      background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.18); border-radius:14px; padding:8px;
+      backdrop-filter: blur(6px);
+    }
+    .action-pad .toolbar{ grid-column:1/-1; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px }
+    .btn{ min-width:auto; padding:12px 10px; border-radius:10px; font-size:14px }
+    .btn.primary{ font-weight:900 }
+
+    /* Chip bar docked to the bottom */
+    .chips{
+      position:absolute; left:50%; top:auto; bottom: calc(4px + var(--safe-b)); transform:translateX(-50%);
+      flex-direction:row; gap:8px; width:calc(100% - 20px); overflow-x:auto; padding:6px 8px;
+      background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.15); border-radius:12px;
+      z-index:4500;
+    }
+
+    /* Banners placed above pads */
+    .info-banner{ left:50%; transform:translateX(-50%); top:auto; bottom: calc(var(--safe-b) + var(--chipH) + var(--padH) + 26px); max-width:92vw }
+
+    .footer-status{
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom: calc(var(--safe-b) + var(--chipH) + 6px);
+    width: 66vw; max-width:520px; z-index:4600;
+    background:rgba(0,0,0,.46); border:1px solid rgba(255,255,255,.2);
+    border-radius:12px; padding:10px 12px; text-align:center; font-weight:800;
+  }
+    .ins-pot{ right:10px; top:78px; width:68px; height:68px }
+    .shoe{ right:10px; top:10px; width:100px; height:60px }
+  }
+
+
+/* ===== v1.7.2 mobile fine-tune ===== */
+:root{
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --chipH: 60px; /* will be overridden by JS */
+  --padH: 170px; /* will be overridden by JS */
+}
+@media (max-width: 720px){
+  .small-note{ display:none } /* move rules into modal */
+  .footer-status{
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom: calc(var(--safe-b) + var(--chipH) + 6px);
+    width: 66vw; max-width:520px; z-index:4600;
+    background:rgba(0,0,0,.46); border:1px solid rgba(255,255,255,.2);
+    border-radius:12px; padding:10px 12px; text-align:center; font-weight:800;
+  }
+  .seat-area{ bottom: calc(var(--safe-b) + var(--chipH) + var(--padH) + 18px); }
+  .info-banner{ bottom: calc(var(--safe-b) + var(--chipH) + var(--padH) + 36px); }
+}
+
+
+  .card.red{color:#b31217}
+  .card .corner{position:absolute; display:flex; flex-direction:column; align-items:center; gap:0; line-height:1; }
+  .card .corner.tl{ left:6px; top:6px; }
+  .card .corner.br{ right:6px; bottom:6px; transform:rotate(180deg); }
+  .card .corner .rank{ font-weight:900; font-size:18px; }
+  .card .corner .suit{ font-size:16px; margin-top:2px; }
+  .card .pip{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:34px; opacity:.85 }
+  .card.back{background: repeating-linear-gradient(45deg, #234, #234 8px, #2c3e50 8px, #2c3e50 16px);border-color:#1b2b3a}
+
+
+/* ===== v1.7.4 mobile status placement ===== */
+@media (max-width: 720px){
+  /* Hide the global fixed pill on mobile */
+  .footer-status{ display:none }
+  /* When the status is moved into the action pad, show and style it */
+  .action-pad .footer-status{
+    display:block;
+    position:static;
+    transform:none;
+    width:100%;
+    max-width:none;
+    bottom:auto;
+    margin:0 0 6px 0;
+    background:rgba(0,0,0,.38);
+    border:1px solid rgba(255,255,255,.2);
+    border-radius:10px;
+    padding:8px 10px;
+    text-align:center;
+    font-weight:800;
+    grid-column:1/-1;
+  }
+}
+
+
+  .footer-status{
+    background:rgba(0,0,0,.46);
+    border:1px solid rgba(255,255,255,.2);
+    border-radius:12px; padding:10px 12px;
+    text-align:center; font-weight:800;
+    display:block;
+  }
+
+
+  @media (min-width: 721px){
+    /* status shown in table surface via JS; hide the old one if outside */
+    #statusHome{ display:none }
+  }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">jay's blackjack v1.7.5</div>
+    <div class="meta">
+      <div class="badge">잔액: <span id="bank" class="gold">$1,000</span></div>
+      <div class="badge">슈(덱): <span id="shoeInfo">6</span></div>
+      <div class="badge">컷카드: <span id="cutInfo">75%</span></div>
+      <div class="badge">리밋: 10–500</div>
+      <div class="stats" id="statBadge">R0 | W0 L0 P0 | 승률 0%</div>
+      <button class="badge" id="soundToggle">🔊 ON</button>
+      <button class="badge" id="rulesOpen">ℹ️ RULES</button>
+    </div>
+  </header>
+
+  <div class="table">
+    <div class="table-surface" id="table">
+      <div class="shoe" id="shoe"></div>
+      <div class="anim-layer" id="animLayer"></div>
+      <div id="statusDock" style="position:absolute;left:50%;transform:translateX(-50%);top:48%;z-index:4200;"></div>
+
+      <div class="dealer-area">
+        <div class="dealer-label">딜러</div>
+        <div class="cards" id="dealerCards"></div>
+        <div id="dealerTotal" class="tot">0</div>
+      </div>
+
+      <div class="ins-pot" id="insPot"><div class="stack" id="stackInsPot"></div></div>
+
+      <div class="seat-area">
+        <div class="seats">
+          <div class="seat" id="seat0">
+            <div class="label">메인</div>
+            <div class="cards pile" id="p0"></div>
+            <div class="bet-circles">
+              <div class="bet" id="betMain" data-drop="main">
+                <div class="stack" id="stackMain"></div>
+                <div class="amt" id="betMainAmt">0</div>
+              </div>
+              <div class="bet small" title="Pair 11:1" id="betPair" data-drop="pair">
+                <div class="stack" id="stackPair"></div>
+                <div class="amt" id="betPairAmt">0</div>
+              </div>
+              <div class="bet small" title="Insurance 2:1 (A일 때)" id="betIns" data-drop="ins">
+                <div class="stack" id="stackIns"></div>
+                <div class="amt" id="betInsAmt">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-banner hidden" id="banner"><div class="m" id="bannerMsg"></div></div>
+
+      <div class="chips" id="chipRack">
+        <div class="chip" draggable="true" data-v="1">1</div>
+        <div class="chip" draggable="true" data-v="5">5</div>
+        <div class="chip" draggable="true" data-v="25">25</div>
+        <div class="chip" draggable="true" data-v="100">100</div>
+        <div class="chip" draggable="true" data-v="500">500</div>
+      </div>
+
+      <div class="action-pad">
+        <div class="toolbar">
+          <button class="btn" id="btnClear">CLEAR</button>
+          <button class="btn" id="btnRebet">REBET</button>
+          <button class="btn primary" id="btnDeal">DEAL</button>
+          <button class="btn new hidden" id="btnNewRound">NEW ROUND</button>
+        </div>
+        <div style="height:8px"></div>
+        <button class="btn ok" id="btnHit" disabled>HIT</button>
+        <button class="btn ok" id="btnStand" disabled>STAND</button>
+        <button class="btn" id="btnDouble" disabled>DOUBLE</button>
+        <button class="btn" id="btnSplit" disabled>SPLIT</button>
+        <button class="btn danger" id="btnSurrender" disabled>SURRENDER</button>
+        <button class="btn alt" id="btnContinue" disabled>CONTINUE</button>
+        <button class="btn em" id="btnEvenMoney" disabled>EVEN MONEY</button>
+        <button class="btn" id="btnInsurance" disabled>INSURANCE</button>
+      </div>
+
+      <div class="result-toast hidden" id="toast">—</div>
+    </div>
+
+    <div id="statusHome"></div>
+    <div class="footer-status" id="statusBar">베팅을 걸고 DEAL</div>
+
+    <div class="small-note">
+재스플릿: 같은 값(예: 2-2, 10-10, K-10 포함)일 때 **최대 3회** → **최대 4핸드**.
+더블다운: **해당 손의 최초 두 장일 때만** 가능(DOA). (스플릿 손도 해당) — 단, **에이스 스플릿은 제외**.
+에이스 스플릿(A-A): 각 손은 **카드 1장만 추가** 후 즉시 종료(히트/더블/재스플릿 불가). BJ로 취급하지 않음.
+기타: BJ 3:2, 보험 2:1, 페어 11:1, ENHC, 서렌더는 초기 2장만.
+잔액이 **$100 이하**일 때는 **라운드 종료 후** 퀴즈(****)로 $1000 충전(누적).
+    </div>
+  </div>
+</div>
+
+<!-- Recharge Modal -->
+<div id="rechargeModal" class="modal hidden">
+  <div class="panel">
+    <h3>잔액이 낮습니다</h3>
+    <p>제작자 휴대폰 번호 <strong>뒤 4자리</strong>를 입력하세요.<br>정답이면 보너스 <strong>$1000</strong>이 현재 잔액에 <strong>추가</strong>됩니다.</p>
+    <div class="row">
+      <input id="rechargeInput" maxlength="4" placeholder="4자리" inputmode="numeric" />
+      <button class="btn ok" id="rechargeConfirm">확인</button>
+      <button class="btn" id="rechargeCancel">취소</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====== WebAudio ====== */
+let audioEnabled = true; let audioCtx = null;
+function ensureAudio(){ if(!audioEnabled) return null; if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+function playChip(){ const ctx=ensureAudio(); if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain(); o.type="square"; o.frequency.value=700; g.gain.value=0.0001; o.connect(g).connect(ctx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime+0.01); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.08); o.stop(ctx.currentTime+0.09); }
+function playSlide(){ const ctx=ensureAudio(); if(!ctx) return; const s=ctx.createBufferSource(); const b=ctx.createBuffer(1, ctx.sampleRate*0.14, ctx.sampleRate); const d=b.getChannelData(0); for(let i=0;i<d.length;i++){ d[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*0.14))*0.4; } s.buffer=b; const bp=ctx.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=1500; bp.Q.value=1.2; const g=ctx.createGain(); g.gain.value=0.15; s.connect(bp).connect(g).connect(ctx.destination); s.start(); }
+function playShuffle(){ const ctx=ensureAudio(); if(!ctx) return; let t=ctx.currentTime; for(let k=0;k<3;k++){ const src=ctx.createBufferSource(); const b=ctx.createBuffer(1, ctx.sampleRate*0.08, ctx.sampleRate); const d=b.getChannelData(0); for(let i=0;i<d.length;i++){ d[i]=(Math.random()*2-1)*(1 - i/d.length)*0.6; } src.buffer=b; const g=ctx.createGain(); g.gain.value=0.12; src.connect(g).connect(ctx.destination); src.start(t + k*0.1); } }
+function playWin(){ const ctx=ensureAudio(); if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain(); o.type="triangle"; o.frequency.setValueAtTime(600, ctx.currentTime); o.frequency.linearRampToValueAtTime(900, ctx.currentTime+0.25); g.gain.value=0.0001; o.connect(g).connect(ctx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime+0.01); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.35); o.stop(ctx.currentTime+0.36); }
+document.getElementById("soundToggle").addEventListener("click", (e)=>{ audioEnabled=!audioEnabled; e.target.textContent = audioEnabled? "🔊 ON": "🔇 OFF"; });
+
+/* ====== DOM/상태 ====== */
+const $ = s => document.querySelector(s);
+const bankEl=$("#bank"), dealerCardsEl=$("#dealerCards"), dealerTotalEl=$("#dealerTotal"), p0El=$("#p0"), statusBar=$("#statusBar"), bannerEl=$("#banner"), bannerMsg=$("#bannerMsg"), toastEl=$("#toast"), animLayer=$("#animLayer"), shoeEl=$("#shoe");
+const btnDeal=$("#btnDeal"), btnNewRound=$("#btnNewRound"), btnClear=$("#btnClear"), btnRebet=$("#btnRebet"), btnHit=$("#btnHit"), btnStand=$("#btnStand"), btnDouble=$("#btnDouble"), btnSplit=$("#btnSplit"), btnSurrender=$("#btnSurrender"), btnContinue=$("#btnContinue"), btnEvenMoney=$("#btnEvenMoney"), btnInsurance=$("#btnInsurance");
+const betMainEl=$("#betMainAmt"), betPairEl=$("#betPairAmt"), betInsEl=$("#betInsAmt");
+const stackMain=$("#stackMain"), stackPair=$("#stackPair"), stackIns=$("#stackIns"), stackInsPot=$("#stackInsPot");
+const statBadge=$("#statBadge");
+const rechargeModal=$("#rechargeModal"), rechargeInput=$("#rechargeInput"), rechargeConfirm=$("#rechargeConfirm"), rechargeCancel=$("#rechargeCancel");
+
+let STATE="BETTING"; let bank=1000; let lastMainBet=0, lastPairBet=0; let mainBet=0, pairBet=0, insBet=0;
+const LIMIT_MIN=10, LIMIT_MAX=500;
+const DENOMS=[500,100,25,5,1];
+
+// Stats
+let stats={rounds:0,wins:0,losses:0,pushes:0,hands:0};
+let roundCounted=false;
+function updateStatsUI(){
+  const denom = (stats.wins + stats.losses) || 1;
+  const winpct = Math.round((stats.wins / denom)*100);
+  statBadge.textContent = `R${stats.rounds} | W${stats.wins} L${stats.losses} P${stats.pushes} | 승률 ${winpct}%`;
+}
+
+/* ====== Shoe ====== */
+const NUM_DECKS=6; let shoe=[]; let shoeIndex=0; let cutIndex=0;
+function buildShoe(n=NUM_DECKS){
+  const suits=["♠","♥","♦","♣"], ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"]; let cards=[];
+  for(let d=0; d<n; d++){ for(const s of suits){ for(const r of ranks){ let val=0; if(r==="A") val=11; else if(["J","Q","K","10"].includes(r)) val=10; else val=parseInt(r,10); cards.push({rank:r,suit:s,val}); } } }
+  for(let i=cards.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [cards[i],cards[j]]=[cards[j],cards[i]]; }
+  shoe=cards; shoeIndex=0; cutIndex=Math.floor(cards.length*0.75);
+  document.getElementById("shoeInfo").textContent=NUM_DECKS.toString(); document.getElementById("cutInfo").textContent="75%"; playShuffle();
+}
+
+/* ====== Utils ====== */
+const fmtUSD = (n)=> "$" + n.toLocaleString(undefined);
+function renderBank(){ bankEl.textContent = fmtUSD(bank); }
+function updateBank(){ renderBank(); /* No auto recharge here */ }
+function updateBets(){ betMainEl.textContent=mainBet.toString(); betPairEl.textContent=pairBet.toString(); betInsEl.textContent=insBet.toString(); }
+
+function updateDealButton(){
+  if(STATE==="BETTING"){
+    btnDeal.classList.remove("hidden");
+    btnNewRound.classList.add("hidden");
+    const can = mainBet >= LIMIT_MIN;
+    btnDeal.disabled = !can;
+    setStatus(can ? "DEAL을 눌러 시작" : `메인 최소 베팅 ${LIMIT_MIN} 이상 후 DEAL`);
+  } else if(STATE==="SETTLE"){
+    btnDeal.classList.add("hidden");
+    btnNewRound.classList.remove("hidden");
+    setStatus("결과 확인 — NEW ROUND를 눌러 다음 라운드");
+  } else {
+    btnDeal.disabled = true;
+  }
+}
+function setActionEnabled(o){
+  btnHit.disabled=!o.hit; btnStand.disabled=!o.stand; btnDouble.disabled=!o.double; btnSplit.disabled=!o.split;
+  btnSurrender.disabled=!o.surrender; btnInsurance.disabled=!o.insurance; btnContinue.disabled=!o.continue; btnEvenMoney.disabled=!o.even;
+}
+function setStatus(msg){ statusBar.textContent = msg; }
+
+/* ====== Chip Stacks ====== */
+function spawnChipToken(container, value){
+  const tok=document.createElement("div"); tok.className="betchip"; tok.dataset.v=value; tok.textContent=value;
+  const cx=container.clientWidth/2, cy=container.clientHeight/2;
+  const rnd=()=> (Math.random()*24-12);
+  tok.style.left=(cx + rnd())+"px"; tok.style.top=(cy + rnd())+"px"; tok.style.transform="translate(-50%,-50%) rotate("+(Math.random()*20-10)+"deg)";
+  container.appendChild(tok); return tok;
+}
+function decompose(amount){ const out=[]; for(const d of DENOMS){ while(amount>=d){ out.push(d); amount-=d; } } return out; }
+function addVisualChips(target, amt, exactDenom=false){ const c = target==="main"? stackMain : target==="pair"? stackPair : target==="insPot"? stackInsPot : stackIns; if(exactDenom){ spawnChipToken(c, amt); } else { decompose(amt).forEach(v=> spawnChipToken(c, v)); } }
+function clearStack(target){ const c = target==="main"? stackMain : target==="pair"? stackPair : target==="insPot"? stackInsPot : stackIns; c.innerHTML=""; }
+function moveInsToPot(){ const chips = Array.from(stackIns.children); chips.forEach(ch => { ch.remove(); stackInsPot.appendChild(ch); }); }
+
+/* Visual settle helpers */
+function clearAllBetVisualsAfterRound(){
+  clearStack("main"); clearStack("pair"); clearStack("ins"); clearStack("insPot");
+  mainBet = 0; pairBet = 0; insBet = 0; updateBets();
+}
+function showSurrenderHalf(betAmt){
+  clearStack("main");
+  const half = Math.floor(betAmt/2);
+  if(half>0) addVisualChips("main", half, false);
+}
+
+/* ====== Drag & Drop ====== */
+function enableDrop(el, type){
+  el.addEventListener("dragover", (e)=>{ e.preventDefault(); const ok = (type==="ins" && STATE==="INSURANCE") || (type!=="ins" && STATE==="BETTING"); if(ok) el.classList.add("drop-target"); });
+  el.addEventListener("dragleave", ()=> el.classList.remove("drop-target"));
+  el.addEventListener("drop", (e)=>{
+    e.preventDefault(); el.classList.remove("drop-target");
+    const v=parseInt(e.dataTransfer.getData("text/plain")||"0",10); if(!v) return;
+    if(type==="ins"){ if(STATE!=="INSURANCE"){ toast("보험 창 아님"); return; } addBet("ins", v, true); }
+    else{ if(STATE!=="BETTING"){ toast("베팅 창 아님"); return; } addBet(type, v, true); }
+  });
+}
+document.querySelectorAll(".chip").forEach(ch=> ch.addEventListener("dragstart",(e)=> e.dataTransfer.setData("text/plain", ch.dataset.v)));
+enableDrop(document.getElementById("betMain"), "main");
+enableDrop(document.getElementById("betPair"), "pair");
+enableDrop(document.getElementById("betIns"), "ins");
+
+/* ====== Betting ====== */
+function addBet(target, amt, fromDrag=false){
+  if(bank<amt){ toast("잔액 부족"); return; }
+  if(target==="main"){
+    if((mainBet+amt)>LIMIT_MAX){ toast("리밋 초과"); return; }
+    mainBet += amt; bank -= amt; updateBank(); updateBets(); playChip(); addVisualChips("main", amt, fromDrag);
+  } else if(target==="pair"){
+    pairBet += amt; bank -= amt; updateBank(); updateBets(); playChip(); addVisualChips("pair", amt, fromDrag);
+  } else if(target==="ins"){
+    const max = Math.floor(hands[0]? hands[0].bet/2 : lastMainBet/2 || mainBet/2);
+    if((insBet+amt) > max){ toast("보험 한도 초과"); return; }
+    insBet += amt; bank -= amt; updateBank(); updateBets(); playChip(); addVisualChips("ins", amt, fromDrag);
+  }
+  if(STATE==="BETTING") updateDealButton();
+}
+function clearBets(){ bank += (mainBet + pairBet + insBet); mainBet=0; pairBet=0; insBet=0; updateBank(); updateBets(); clearStack("main"); clearStack("pair"); clearStack("ins"); clearStack("insPot"); if(STATE==="BETTING") updateDealButton(); }
+function rebet(){ if(lastMainBet<=0){ toast("이전 베팅 없음"); return; } clearBets(); const need = lastMainBet+lastPairBet; if(bank<need){ toast("잔액 부족"); return; } mainBet=lastMainBet; pairBet=lastPairBet; bank -= need; updateBank(); updateBets(); addVisualChips("main", mainBet, false); addVisualChips("pair", pairBet, false); if(STATE==="BETTING") updateDealButton(); }
+
+/* ====== Cards/Hands ====== */
+function cardEl(card){
+  const el=document.createElement("div");
+  el.className="card"+((card.suit==="♥"||card.suit==="♦")?" red":"");
+  const tl=document.createElement("div"); tl.className="corner tl";
+  const tlr=document.createElement("div"); tlr.className="rank"; tlr.textContent=card.rank;
+  const tls=document.createElement("div"); tls.className="suit"; tls.textContent=card.suit;
+  tl.append(tlr,tls);
+  const br=document.createElement("div"); br.className="corner br";
+  const brr=document.createElement("div"); brr.className="rank"; brr.textContent=card.rank;
+  const brs=document.createElement("div"); brs.className="suit"; brs.textContent=card.suit;
+  br.append(brr,brs);
+  const pip=document.createElement("div"); pip.className="pip"; pip.textContent=card.suit;
+  el.append(tl,pip,br);
+  return el;
+}
+function newHand(bet, fromSplit=false, splitAces=false){ return {cards:[],bet,finished:false,doubled:false,surrendered:false,fromSplit,splitAces,blackjack:false,result:null}; }
+let dealer={cards:[]}; let hands=[]; let activeHandIndex=0;
+function handTotals(cards){ let total=0, aces=0; for(const c of cards){ total+=c.val; if(c.rank==="A") aces++; } while(total>21 && aces>0){ total-=10; aces--; } let soft=false; if(cards.some(c=>c.rank==="A")){ let raw=0,a=0; for(const c of cards){ raw += (c.rank==="A"?11:(["J","Q","K","10"].includes(c.rank)?10:parseInt(c.rank,10))); if(c.rank==="A") a++; } while(raw>21 && a>0){ raw-=10; a--; } if(raw<=21) soft=true; } return {total,soft}; }
+function isBlackjack(cards){ if(cards.length!==2) return false; const hasA=cards.some(c=>c.rank==="A"); const has10=cards.some(c=>["10","J","Q","K"].includes(c.rank)); return hasA && has10; }
+
+/* ====== Rules checks ====== */
+function equalValuePair(a,b){
+  const v = (c)=> (c.rank==="A")?11: (["J","Q","K","10"].includes(c.rank)?10:parseInt(c.rank,10));
+  return v(a)===v(b);
+}
+function canSplit(h){
+  if(h.cards.length!==2) return false;
+  if(hands.length>=4) return false; // max 4 hands total
+  if(!equalValuePair(h.cards[0], h.cards[1])) return false;
+  if(h.splitAces) return false;
+  if(bank < h.bet) return false;
+  return true;
+}
+function canDouble(h){
+  if(STATE!=="PLAYER") return false;
+  if(h.finished) return false;
+  if(h.doubled) return false;
+  if(h.splitAces) return false; // No double on split Aces
+  if(h.cards.length !== 2) return false; // DOA
+  return (bank >= h.bet);
+}
+
+/* ====== Anim dealing ====== */
+function drawCard(){ if(shoeIndex>=shoe.length || shoeIndex>=cutIndex){ buildShoe(); toast("셔플"); } return shoe[shoeIndex++]; }
+function getCenter(el){ const r=el.getBoundingClientRect(); const p=document.getElementById("table").getBoundingClientRect(); return {x:r.left-p.left + r.width/2, y:r.top-p.top + r.height/2}; }
+function delay(ms){ return new Promise(r=>setTimeout(r, ms)); }
+async function flyFromShoeTo(targetEl){ const start=getCenter(shoeEl), end=getCenter(targetEl); const f=document.createElement("div"); f.className="flying"; f.style.transform=`translate(${start.x-39}px, ${start.y-56}px) rotate(0deg)`; animLayer.appendChild(f); f.getBoundingClientRect(); const ang=(Math.random()*10-5); f.style.transform=`translate(${end.x-39}px, ${end.y-56}px) rotate(${ang}deg)`; playSlide(); await delay(320); f.remove(); }
+
+/* ====== Rendering ====== */
+function renderDealer(){ dealerCardsEl.innerHTML=""; for(const c of dealer.cards){ dealerCardsEl.appendChild(cardEl(c)); } dealerTotalEl.textContent=handTotals(dealer.cards).total; }
+function renderHands(){
+  p0El.innerHTML="";
+  hands.forEach((h,idx)=>{
+    const pile=document.createElement("div");
+    pile.className="cards";
+    h.cards.forEach(cd=> { pile.appendChild(cardEl(cd)); });
+    const t=handTotals(h.cards);
+    const tot=document.createElement("div");
+    tot.className="tot";
+    tot.textContent=t.total + (t.soft ? " (S)" : "");
+    const box=document.createElement("div");
+    box.style.display="flex"; box.style.flexDirection="column"; box.style.alignItems="center"; box.style.gap="6px";
+    box.append(pile, tot);
+    const sep=document.createElement("div"); sep.style.width="6px";
+    p0El.append(box); if(idx<hands.length-1) p0El.append(sep);
+  });
+  if(STATE==="PLAYER"){
+    const h=hands[activeHandIndex];
+    setActionEnabled({
+      hit:(!h.finished && !h.splitAces),
+      stand:!h.finished,
+      double:canDouble(h),
+      split:canSplit(h),
+      surrender:false, insurance:false, continue:false, even:false
+    });
+  }
+}
+
+/* ====== Round flow ====== */
+function resetVisual(stateMsg="베팅을 걸고 DEAL", keepBets=true){
+  dealer={cards:[]}; hands=[]; activeHandIndex=0;
+  dealerCardsEl.innerHTML=""; p0El.innerHTML=""; dealerTotalEl.textContent="0"; hideBanner();
+  setActionEnabled({hit:false,stand:false,double:false,split:false,surrender:false,insurance:false,continue:false,even:false});
+  STATE="BETTING"; setStatus(stateMsg); btnNewRound.classList.add("hidden"); btnDeal.classList.remove("hidden"); updateDealButton();
+  renderBank();
+}
+function resetTable(keepBets=false){ if(!keepBets){ clearBets(); } resetVisual("베팅을 걸고 DEAL", keepBets); }
+
+async function startDeal(){
+  if(mainBet<LIMIT_MIN){ toast(`최소 베팅 ${LIMIT_MIN}`); return; }
+  STATE="DEALING"; setStatus("딜 중..."); btnDeal.disabled=true; roundCounted=false;
+  lastMainBet=mainBet; lastPairBet=pairBet; hands=[newHand(mainBet)]; renderHands(); renderDealer();
+  const destP=p0El, destD=dealerCardsEl;
+  const c1=drawCard(); hands[0].cards.push(c1); await flyFromShoeTo(destP); renderHands();
+  const d1=drawCard(); dealer.cards.push(d1); await flyFromShoeTo(destD); renderDealer();
+  const c2=drawCard(); hands[0].cards.push(c2); await flyFromShoeTo(destP); renderHands();
+
+  // Pair side bet
+  if(pairBet>0){
+    if(c1.rank===c2.rank){ const win=pairBet*11; bank += (pairBet+win); toast(`PAIR 적중 +${win}`); playWin(); pairBet=0; clearStack("pair"); updateBank(); updateBets(); }
+    else { pairBet=0; clearStack("pair"); updateBets(); }
+  }
+  if(isBlackjack(hands[0].cards)) hands[0].blackjack=true;
+
+  const up = dealer.cards[0].rank;
+  const upIsTenVal = ["10","J","Q","K"].includes(up);
+
+  if(hands[0].blackjack){
+    if(up==="A"){
+      STATE="EVENMONEY";
+      showBanner("플레이어 블랙잭!\nEVEN MONEY(1:1)로 즉시 정산하시겠습니까?\n아니면 진행하여 딜러가 블랙잭이면 PUSH, 아니면 3:2를 받습니다.", "ins");
+      setStatus("EVEN MONEY 또는 진행 선택");
+      setActionEnabled({hit:false,stand:false,double:false,split:false,surrender:false,insurance:false,continue:true,even:true});
+      return;
+    } else if(upIsTenVal){
+      STATE="DEALER";
+      setStatus("딜러 진행(플레이어 BJ, A 나오면 PUSH)");
+      await startDealerPlay();
+      return;
+    } else {
+      const h = hands[0]; const win = Math.floor(h.bet*1.5); bank += h.bet + win; h.result="BJ"; updateBank(); toast("플레이어 블랙잭 3:2 지급"); playWin(); finalizeRoundStats(); clearAllBetVisualsAfterRound(); freezeForNewRound(); return;
+    }
+  }
+
+  // Normal windows if no BJ
+  if(up==="A"){
+    STATE="INSURANCE"; setStatus("보험 선택(최대 1/2) 또는 CONTINUE로 진행");
+    showBanner("보험(INSURANCE) 오픈\n- 딜러 업카드가 A일 때만 가능\n- 버튼을 누르면 본베팅의 1/2로 자동 설정\n\n보험을 들지 않으려면 \u201CCONTINUE\u201D 를 누르세요.", "ins");
+    setActionEnabled({hit:false,stand:false,double:false,split:false,surrender:false,insurance:true,continue:true,even:false});
+  } else {
+    STATE="SURRENDER"; setStatus("서렌더 가능(초기 2장만)");
+    showBanner("서렌더(SURRENDER) 오픈\n- 딜러 업카드가 A가 아닐 때만 가능\n- **초기 2장** 상태에서만 선택 가능\n\n서렌더하지 않으려면 \u201CCONTINUE\u201D 를 누르세요.", "surr");
+    setActionEnabled({hit:false,stand:false,double:false,split:canSplit(hands[0]),surrender:true,insurance:false,continue:true,even:false});
+  }
+}
+
+/* ====== Controls ====== */
+function showBanner(msg, kind){ bannerMsg.textContent=msg; bannerEl.classList.remove("hidden"); bannerEl.classList.toggle("ins-window", kind==="ins"); bannerEl.classList.toggle("surr-window", kind==="surr"); }
+function hideBanner(){ bannerEl.classList.add("hidden"); bannerEl.classList.remove("ins-window","surr-window"); }
+function toast(msg){ toastEl.textContent=msg; toastEl.classList.remove("hidden"); setTimeout(()=>toastEl.classList.add("hidden"),1500); }
+
+btnEvenMoney.addEventListener("click", ()=>{
+  if(STATE!=="EVENMONEY") return;
+  const h=hands[0]; bank += h.bet*2; h.result="EVEN"; updateBank(); hideBanner(); toast("EVEN MONEY 1:1 지급"); playWin(); finalizeRoundStats(); clearAllBetVisualsAfterRound(); freezeForNewRound();
+});
+btnContinue.addEventListener("click", async ()=>{
+  if(STATE==="SURRENDER"){ hideBanner(); startPlayerTurn(); }
+  else if(STATE==="EVENMONEY"){ hideBanner(); await startDealerPlay(); }
+  else if(STATE==="INSURANCE"){ hideBanner(); startPlayerTurn(); }
+});
+btnInsurance.addEventListener("click", ()=>{
+  if(STATE!=="INSURANCE") return;
+  const max = Math.floor(hands[0].bet/2);
+  const need = Math.max(0, max - insBet);
+  if(need>0){
+    if(bank<need){ toast("잔액 부족"); return; }
+    insBet += need; bank -= need; updateBank(); updateBets(); addVisualChips("ins", need, false);
+  }
+  moveInsToPot();
+  hideBanner(); startPlayerTurn();
+});
+btnSurrender.addEventListener("click", async ()=>{
+  if(STATE!=="SURRENDER") return;
+  const h=hands[0]; if(h.cards.length!==2){ toast("서렌더는 초기 2장만"); return; }
+  h.surrendered=true; h.finished=true; h.result="SURRENDER"; bank += Math.floor(h.bet/2); updateBank();
+  showSurrenderHalf(h.bet);
+  hideBanner();
+  setActionEnabled({hit:false,stand:false,double:false,split:false,surrender:false,insurance:false,continue:false,even:false});
+  setStatus("서렌더 처리됨");
+  await delay(350);
+  STATE="SETTLE"; settleRound();
+});
+
+function setActiveAndTopUp(i){
+  activeHandIndex = i;
+  renderHands();
+  return (async ()=>{
+    const h=hands[i];
+    if(h.cards.length===1 && !h.splitAces){
+      const c=drawCard(); h.cards.push(c); await flyFromShoeTo(p0El); renderHands();
+    }
+  })();
+}
+
+function startPlayerTurn(){ STATE="PLAYER"; hideBanner(); setStatus("플레이"); setActiveAndTopUp(0); }
+
+async function nextHandOrDealer(){
+  for(let i=0;i<hands.length;i++){
+    if(!hands[i].finished){
+      await setActiveAndTopUp(i);
+      return;
+    }
+  }
+  await startDealerPlay();
+}
+
+btnHit.addEventListener("click", async ()=>{
+  if(STATE!=="PLAYER") return;
+  const h=hands[activeHandIndex]; if(h.finished || h.splitAces) return;
+  const c=drawCard(); h.cards.push(c); await flyFromShoeTo(p0El); renderHands();
+  const t=handTotals(h.cards);
+  if(t.total>21){ h.finished=true; h.result="LOSE"; toast("버스트"); }
+  renderHands(); await nextHandOrDealer();
+});
+btnStand.addEventListener("click", async ()=>{
+  if(STATE!=="PLAYER") return;
+  const h=hands[activeHandIndex];
+  h.finished=true; renderHands(); await nextHandOrDealer();
+});
+btnDouble.addEventListener("click", async ()=>{
+  if(STATE!=="PLAYER") return;
+  const h=hands[activeHandIndex]; if(!canDouble(h)) return;
+  bank -= h.bet; h.bet*=2; h.doubled=true; updateBank(); updateBets(); addVisualChips("main", h.bet/2, false);
+  const c=drawCard(); h.cards.push(c); await flyFromShoeTo(p0El); renderHands();
+  h.finished=true; await nextHandOrDealer();
+});
+btnSplit.addEventListener("click", async ()=>{
+  if(STATE!=="PLAYER") return;
+  const h=hands[activeHandIndex]; if(!canSplit(h)) return;
+  const [c1,c2]=h.cards;
+  if(bank < h.bet){ toast("잔액 부족"); return; }
+  // Place additional equal bet
+  bank -= h.bet; updateBank(); updateBets(); addVisualChips("main", h.bet, false);
+
+  const isAA = (c1.rank==="A" && c2.rank==="A");
+
+  // Create two new hands each with one of the pair
+  const h1=newHand(h.bet,true,isAA), h2=newHand(h.bet,true,isAA);
+  h1.cards.push(c1); h2.cards.push(c2);
+
+  // Replace current hand with h1 and insert h2 right after
+  const idx = activeHandIndex;
+  hands.splice(idx,1,h1);
+  hands.splice(idx+1,0,h2);
+
+  if(isAA){
+    // For split Aces: deal exactly one card to each, then finish
+    const cA=drawCard(); h1.cards.push(cA); await flyFromShoeTo(p0El); renderHands();
+    h1.finished=true;
+    const cB=drawCard(); h2.cards.push(cB); await flyFromShoeTo(p0El); renderHands();
+    h2.finished=true;
+    setStatus("에이스 스플릿 — 각 손 1장만 추가 후 종료");
+    await nextHandOrDealer();
+  } else {
+    // Activate h1; if has one card, top-up to two; then user acts
+    await setActiveAndTopUp(idx);
+    setStatus("스플릿 완료 — 현재 손 플레이");
+  }
+});
+
+/* ====== Dealer play (slow reveal) ====== */
+async function startDealerPlay(){
+  STATE="DEALER"; setStatus("딜러 진행"); renderDealer();
+  const anyActive=hands.some(h=>!h.surrendered && handTotals(h.cards).total<=21);
+  if(!anyActive){ settleRound(); return; }
+  let t=handTotals(dealer.cards);
+  while(true){
+    const soft17=(t.total===17 && t.soft);
+    if(t.total<17){
+      const c=drawCard(); dealer.cards.push(c);
+      await flyFromShoeTo(dealerCardsEl); renderDealer();
+      await delay(260);
+      t=handTotals(dealer.cards);
+    } else if(t.total===17 && soft17===true){ break; }
+    else break;
+  }
+  renderDealer(); settleRound();
+}
+
+/* ====== Settlement (freeze board) ====== */
+function settleRound(){
+  STATE="SETTLE";
+  setActionEnabled({hit:false,stand:false,double:false,split:false,surrender:false,insurance:false,continue:false,even:false});
+  setStatus("정산");
+  const dealerBJ=isBlackjack(dealer.cards), dealerTot=handTotals(dealer.cards).total, dealerBust=dealerTot>21;
+
+  // Insurance settle
+  if(insBet>0){
+    if(dealerBJ){ bank += insBet + (insBet*2); toast(`INSURANCE WIN +${insBet*2}`); playWin(); }
+    insBet=0; updateBank(); updateBets(); clearStack("ins"); clearStack("insPot");
+  }
+
+  hands.forEach(h=>{
+    if(h.surrendered) return;
+    const pt=handTotals(h.cards).total, pBust=pt>21;
+    if(dealerBJ){
+      const pBJ = h.blackjack && !h.fromSplit;
+      if(pBJ){ h.result="PUSH"; bank += h.bet; } 
+      else {
+        if(h.doubled){ bank += Math.floor(h.bet/2); }
+        h.result="LOSE";
+      }
+      return;
+    }
+    if(h.blackjack && !h.fromSplit){ const win=Math.floor(h.bet*1.5); bank += h.bet + win; h.result="BJ"; playWin(); return; }
+    if(pBust){ h.result="LOSE"; return; }
+    if(dealerBust){ bank += h.bet*2; h.result="WIN"; playWin(); return; }
+    if(pt>dealerTot){ bank += h.bet*2; h.result="WIN"; playWin(); }
+    else if(pt<dealerTot){ h.result="LOSE"; }
+    else { bank += h.bet; h.result="PUSH"; }
+  });
+  updateBank();
+  const summary = hands.map((h,i)=>`${i+1}:${h.result||"—"}`).join(" | "); toast("정산: "+summary);
+  finalizeRoundStats();
+  clearAllBetVisualsAfterRound();
+  freezeForNewRound();
+}
+function freezeForNewRound(){
+  STATE="SETTLE";
+  btnDeal.classList.add("hidden"); btnNewRound.classList.remove("hidden");
+  setStatus("결과 확인 — NEW ROUND를 눌러 다음 라운드");
+  // Offer recharge only now (after round ends)
+  if(bank <= 100){ showRecharge(); }
+}
+function finalizeRoundStats(){
+  if(roundCounted) return;
+  let w=0,l=0,p=0,hc=0;
+  hands.forEach(h=>{
+    if(!h.result && h.surrendered) h.result="SURRENDER";
+    if(!h.result) return;
+    hc++;
+    if(h.result==="WIN"||h.result==="BJ"||h.result==="EVEN"){ w++; }
+    else if(h.result==="PUSH"){ p++; }
+    else { l++; }
+  });
+  stats.rounds += 1;
+  stats.hands += hc;
+  stats.wins += w;
+  stats.losses += l;
+  stats.pushes += p;
+  roundCounted=true;
+  updateStatsUI();
+}
+
+/* ====== Recharge logic ====== */
+let rechargeOpen=false;
+let rechargeSnooze=false;
+function showRecharge(){
+  if(rechargeSnooze || rechargeOpen) return;
+  rechargeOpen=true;
+  rechargeModal.classList.remove("hidden");
+  rechargeInput.value="";
+  rechargeInput.focus();
+}
+function hideRecharge(){
+  rechargeOpen=false;
+  rechargeModal.classList.add("hidden");
+}
+rechargeConfirm.addEventListener("click", ()=>{
+  const code = (rechargeInput.value||"").trim();
+  if(code==="1808"){
+    bank += 1000;           // ADD $1000 (not reset)
+    updateBank();
+    toast("$1000 보너스 지급");
+    hideRecharge();
+  } else {
+    toast("오답입니다");
+    rechargeInput.select();
+  }
+});
+rechargeCancel.addEventListener("click", ()=>{
+  rechargeSnooze=true;      // don't bug again until next time bank rises then falls
+  hideRecharge();
+});
+rechargeInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ rechargeConfirm.click(); } });
+
+/* ====== Convenience ====== */
+// Single click on chip -> bet to main (BETTING only)
+document.querySelectorAll(".chip").forEach(chip=> chip.addEventListener("click", ()=>{
+  if(STATE!=="BETTING"){ toast("베팅 창 아님"); return; }
+  const v=parseInt(chip.dataset.v,10);
+  addBet("main", v, true);
+}));
+// Double click on chip -> bet same to main
+document.querySelectorAll(".chip").forEach(chip=> chip.addEventListener("dblclick", ()=>{
+  if(STATE!=="BETTING"){ toast("베팅 창 아님"); return; }
+  const v=parseInt(chip.dataset.v,10);
+  addBet("main", v, true);
+}));
+
+document.getElementById("betMain").addEventListener("click", ()=>{ if(STATE!=="BETTING"){ toast("베팅 창 아님"); return; } addBet("main", 5, false); });
+document.getElementById("betPair").addEventListener("click", ()=>{ if(STATE!=="BETTING"){ toast("라운드 중에는 불가"); return; } addBet("pair", 5, false); });
+
+btnDeal.addEventListener("click", ()=>{ if(STATE!=="BETTING"){ toast("라운드 진행 중"); return; } if(mainBet<LIMIT_MIN){ toast(`최소 베팅 ${LIMIT_MIN}`); updateDealButton(); return; } startDeal(); });
+btnClear.addEventListener("click", ()=>{ if(STATE!=="BETTING"){ toast("라운드 중에는 불가"); return; } clearBets(); });
+btnRebet.addEventListener("click", ()=>{ if(STATE!=="BETTING"){ toast("라운드 중에는 불가"); return; } rebet(); });
+btnNewRound.addEventListener("click", ()=>{ resetVisual("베팅을 걸고 DEAL", true); });
+
+/* ====== Init ====== */
+buildShoe();
+resetTable(true);
+updateStatsUI();
+renderBank();
+
+/* ===== v1.7.2 dynamic layout ===== */
+function syncHeights(){
+  const pad = document.querySelector('.action-pad');
+  const chips = document.querySelector('.chips');
+  const root = document.documentElement;
+  const padH = (pad ? pad.offsetHeight : 0) + 8;
+  const chipH = (chips ? chips.offsetHeight : 0) + 8;
+  root.style.setProperty('--padH', padH + 'px');
+  root.style.setProperty('--chipH', chipH + 'px');
+}
+window.addEventListener('resize', syncHeights);
+window.addEventListener('orientationchange', syncHeights);
+document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(syncHeights, 60); setTimeout(syncHeights, 400); });
+/* Rules modal */
+const rulesOpen = document.getElementById('rulesOpen');
+const rulesModal = document.getElementById('rulesModal');
+const rulesClose = document.getElementById('rulesClose');
+if(rulesOpen && rulesModal && rulesClose){
+  rulesOpen.addEventListener('click', ()=>{ rulesModal.classList.remove('hidden'); syncHeights(); });
+  rulesClose.addEventListener('click', ()=>{ rulesModal.classList.add('hidden'); syncHeights(); });
+}
+
+
+/* ===== v1.7.4 status mover ===== */
+(function(){
+  const statusBar = document.getElementById('statusBar');
+  const statusHome = document.getElementById('statusHome');
+  const pad = document.querySelector('.action-pad');
+  function placeStatus(){
+    if(!statusBar || !statusHome || !pad) return;
+    const mobile = window.innerWidth <= 720;
+    if(mobile){
+      if(statusBar.parentElement !== pad){
+        pad.insertBefore(statusBar, pad.firstChild);
+      }
+    }else{
+      if(statusBar.parentElement !== statusHome.parentElement){
+        statusHome.parentElement.insertBefore(statusBar, statusHome.nextSibling);
+      }
+    }
+  }
+  window.addEventListener('resize', placeStatus);
+  window.addEventListener('orientationchange', placeStatus);
+  document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(placeStatus, 30); setTimeout(placeStatus, 400); });
+})();
+
+
+/* ===== v1.7.5 status placement (desktop) ===== */
+(function(){
+  const statusBar = document.getElementById('statusBar');
+  const statusHome = document.getElementById('statusHome');
+  const pad = document.querySelector('.action-pad');
+  const dock = document.getElementById('statusDock');
+  const seatArea = document.querySelector('.seat-area');
+  const table = document.getElementById('table');
+
+  function placeStatus(){
+    if(!statusBar) return;
+    const mobile = window.innerWidth <= 720;
+    if(mobile){
+      if(pad && statusBar.parentElement !== pad){
+        pad.insertBefore(statusBar, pad.firstChild);
+        statusBar.style.position = 'static';
+        statusBar.style.width = '100%';
+      }
+    }else{
+      // Desktop: show inside the table surface dock
+      if(dock && statusBar.parentElement !== dock){
+        dock.appendChild(statusBar);
+      }
+      // Compute a Y so the pill sits slightly ABOVE the betting rings
+      try{
+        const seatRect = seatArea.getBoundingClientRect();
+        const tableRect = table.getBoundingClientRect();
+        const y = Math.max(20, (seatRect.top - tableRect.top) - 26); // 26px gap above seat
+        statusBar.style.position = 'absolute';
+        statusBar.style.left = '50%';
+        statusBar.style.transform = 'translateX(-50%)';
+        statusBar.style.top = y + 'px';
+        statusBar.style.width = 'auto';
+        statusBar.style.maxWidth = '720px';
+      }catch(e){ /* noop */ }
+    }
+  }
+  window.addEventListener('resize', placeStatus);
+  window.addEventListener('orientationchange', placeStatus);
+  document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(placeStatus, 30); setTimeout(placeStatus, 400); });
+  // Expose for other scripts that change layout
+  window.__placeStatus = placeStatus;
+})();
+
+</script>
+
+<!-- Rules Modal -->
+<div id="rulesModal" class="modal hidden">
+  <div class="panel">
+    <h3>규칙 안내</h3>
+    <p style="white-space:pre-line; line-height:1.45">
+재스플릿: 같은 값(예: 2-2, 10-10, K-10 포함)일 때 최대 3회 → 최대 4핸드.
+더블다운: 해당 손의 최초 두 장일 때만 가능(DOA). (스플릿 손도 해당) — 단, 에이스 스플릿은 제외.
+에이스 스플릿(A-A): 각 손은 카드 1장만 추가 후 즉시 종료(히트/더블/재스플릿 불가). BJ로 취급하지 않음.
+기타: BJ 3:2, 보험 2:1, 페어 11:1, ENHC, 서렌더는 초기 2장만.
+잔액이 $100 이하일 때는 라운드 종료 후 퀴즈(****)로 $1000 충전(누적).
+    </p>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn" id="rulesClose">닫기</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
