@@ -1,13 +1,12 @@
-/* Mobile Compact Overrides v2.4 — targeted width tuning */
+/* Mobile Compact Overrides v2.5 — text wrapping & legibility */
 @media (max-width:720px){
   :root{ --chipH:36px; --padH:116px; }
   .table-surface{ height: calc(100vh - 80px) !important; }
 
   .action-pad{
     display:grid !important;
-    /* col1 CLEAR | col2 DOUBLE/SPLIT | col3..6 controls (col4/5 slightly narrower) */
     grid-template-columns: 44px 78px minmax(0,1fr) minmax(0,0.88fr) minmax(0,0.88fr) minmax(0,1fr) !important;
-    grid-auto-rows:minmax(40px,auto) !important;
+    grid-auto-rows:minmax(44px,auto) !important; /* a bit taller to allow 2 lines */
     grid-auto-flow:dense !important;
     column-gap:4px !important; row-gap:6px !important;
     padding:6px !important; border-radius:12px !important;
@@ -17,39 +16,60 @@
   }
   .action-pad .toolbar{ display:contents !important; }
   .action-pad > div[style*="height:8px"]{ display:none !important; }
-  .action-pad .footer-status{ grid-column:1 / -1 !important; padding:6px 8px !important; margin:0 0 4px 0 !important; font-size:12.5px !important; }
 
+  /* Status pill wraps nicely */
+  .action-pad .footer-status{
+    grid-column:1 / -1 !important;
+    padding:6px 8px !important;
+    margin:0 0 4px 0 !important;
+    font-size:12.2px !important;
+    white-space:normal !important;
+    line-height:1.2 !important;
+    text-wrap:balance !important;
+  }
+
+  /* Buttons — allow 2-line wrap and center */
   .btn{
-    padding:8px 8px !important; font-size:12.5px !important; border-radius:9px !important;
-    min-width:0 !important; box-sizing:border-box !important; white-space:nowrap !important;
+    padding:8px 8px !important;
+    font-size:12.5px !important;
+    border-radius:9px !important;
+    min-width:0 !important; box-sizing:border-box !important;
+    white-space:normal !important;        /* allow wrapping */
+    line-height:1.12 !important;
+    text-align:center !important;
+    display:flex !important; align-items:center !important; justify-content:center !important;
     box-shadow:0 3px 8px rgba(0,0,0,.22) !important;
   }
 
-  /* CLEAR: vertical two-row */
+  /* CLEAR vertical two-row */
   #btnClear{
     grid-column:1 !important; grid-row:2 / span 2 !important;
     writing-mode: vertical-rl !important; transform: rotate(180deg) !important;
     text-align:center !important; letter-spacing:.5px !important; padding:10px 4px !important;
   }
 
-  /* DOUBLE/SPLIT column (col2) */
+  /* DOUBLE/SPLIT vertical stack (col 2) */
   #btnDouble{ grid-column:2 !important; grid-row:2 !important; }
-  #btnSplit{ grid-column:2 !important; grid-row:3 !important; }
+  #btnSplit{  grid-column:2 !important; grid-row:3 !important; }
 
-  /* Narrower horizontal padding for DEAL/SURRENDER (col4) and HIT/CONTINUE (col5) */
+  /* Narrower horizontal padding for columns 4 & 5 buttons */
   #btnDeal, #btnSurrender, #btnHit, #btnContinue{ padding-inline:6px !important; }
 
-  /* Row 2 (main) */
+  /* Row 2 */
   #btnRebet{ grid-column:3 !important; grid-row:2 !important; }
   #btnDeal, #btnNewRound{ grid-column:4 !important; grid-row:2 !important; }
   #btnHit{ grid-column:5 !important; grid-row:2 !important; }
   #btnStand{ grid-column:6 !important; grid-row:2 !important; }
 
-  /* Row 3 (secondary) */
+  /* Row 3 */
   #btnEvenMoney{ grid-column:3 !important; grid-row:3 !important; }
   #btnSurrender{ grid-column:4 !important; grid-row:3 !important; }
   #btnContinue{ grid-column:5 !important; grid-row:3 !important; }
   #btnInsurance{ grid-column:6 !important; grid-row:3 !important; }
+
+  /* Slightly smaller fonts for long labels, allow break-word for single long words */
+  #btnEvenMoney, #btnSurrender, #btnContinue{ font-size:11.6px !important; }
+  #btnInsurance{ font-size:11px !important; word-break:break-word !important; }
 
   /* Chip rack (centered + safe width) */
   .chips{
@@ -61,5 +81,6 @@
 
   .seat-area{ bottom: calc(env(safe-area-inset-bottom,0px) + var(--chipH) + var(--padH) + 8px) !important; }
   .info-banner{ bottom: calc(env(safe-area-inset-bottom,0px) + var(--chipH) + var(--padH) + 18px) !important; }
+
   .pile{ min-height:92px !important; }
 }
