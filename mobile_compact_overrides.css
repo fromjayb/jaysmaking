@@ -1,4 +1,4 @@
-/* Mobile Compact Overrides v2.8 — 8px labels + DEAL only */
+/* Mobile Compact Overrides v2.10 — NEW ROUND restored, labels kept */
 @media (max-width:720px){
   :root{ --chipH:36px; --padH:116px; }
   .table-surface{ height: calc(100vh - 80px) !important; }
@@ -24,10 +24,9 @@
     overflow:hidden !important; text-overflow:ellipsis !important;
   }
 
-  /* Buttons: 8px, wrap allowed, clamp content within cell */
+  /* Buttons default: 8px */
   .btn{
-    position:relative !important;
-    display:block !important;
+    position:relative !important; display:block !important;
     width:100% !important; max-width:100% !important;
     padding:8px 8px !important;
     font-size:8px !important; line-height:1.12 !important;
@@ -44,18 +43,17 @@
     text-align:center !important; letter-spacing:.5px !important; padding:10px 4px !important;
   }
 
-  /* DOUBLE/SPLIT column */
+  /* DOUBLE/SPLIT column (col2) */
   #btnDouble{ grid-column:2 !important; grid-row:2 !important; }
   #btnSplit{  grid-column:2 !important; grid-row:3 !important; }
 
-  /* Slimmer padding for columns 4 & 5 */
+  /* Slimmer padding for cols 4 & 5 */
   #btnDeal, #btnSurrender, #btnHit, #btnContinue{ padding-inline:6px !important; }
 
   /* Row 2 */
   #btnRebet{ grid-column:3 !important; grid-row:2 !important; }
   #btnDeal{ grid-column:4 !important; grid-row:2 !important; }
-  #btnNewRound{ display:none !important; }            /* always hide NEW ROUND */
-  #btnDeal.hidden{ display:block !important; }        /* force DEAL visible even if JS adds .hidden */
+  #btnNewRound{ grid-column:4 !important; grid-row:2 !important; }  /* restored; JS toggles visibility */
   #btnHit{ grid-column:5 !important; grid-row:2 !important; }
   #btnStand{ grid-column:6 !important; grid-row:2 !important; }
 
@@ -64,6 +62,15 @@
   #btnSurrender{ grid-column:4 !important; grid-row:3 !important; }
   #btnContinue{ grid-column:5 !important; grid-row:3 !important; }
   #btnInsurance{ grid-column:6 !important; grid-row:3 !important; }
+
+  /* Korean labels at 10px for SURRENDER/CONTINUE */
+  #btnSurrender, #btnContinue{ font-size:0 !important; }
+  #btnSurrender::after, #btnContinue::after{
+    content:""; display:block; width:100%; text-align:center;
+    font-size:10px; font-weight:800; line-height:1.12; white-space:nowrap; letter-spacing:0.2px;
+  }
+  #btnSurrender::after{ content:"서렌더"; }
+  #btnContinue::after{ content:"진행"; }
 
   /* Chip rack */
   .chips{
@@ -75,6 +82,5 @@
 
   .seat-area{ bottom: calc(env(safe-area-inset-bottom,0px) + var(--chipH) + var(--padH) + 8px) !important; }
   .info-banner{ bottom: calc(env(safe-area-inset-bottom,0px) + var(--chipH) + var(--padH) + 18px) !important; }
-
   .pile{ min-height:92px !important; }
 }
