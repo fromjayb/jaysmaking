@@ -1,25 +1,79 @@
-/* Mobile Compact Overrides v2.1 — fix right-edge clipping */
+/* Mobile Compact Overrides v2.2 — vertical CLEAR + vertical DOUBLE/SPLIT, CSS-only */
 @media (max-width:720px){
-  :root{ --chipH:36px; --padH:112px; }
+  :root{ --chipH:36px; --padH:116px; }
 
+  /* Expand table height for more room */
   .table-surface{ height: calc(100vh - 80px) !important; }
 
+  /* Action pad: define a 6-column grid
+     - col1: narrow vertical CLEAR
+     - col2: vertical stack DOUBLE (row2) / SPLIT (row3)
+     - col3..6: rest of the buttons
+  */
   .action-pad{
     display:grid !important;
-    grid-template-columns:repeat(6,1fr) !important;
+    grid-template-columns: 56px 86px 1fr 1fr 1fr 1fr !important;
+    grid-auto-rows:minmax(40px,auto) !important;
     gap:6px !important;
     padding:6px !important;
     border-radius:12px !important;
     bottom: calc(env(safe-area-inset-bottom,0px) + var(--chipH) + 6px) !important;
-    /* centering + safe width */
+    /* center & safe width */
     left:50% !important; right:auto !important; transform:translateX(-50%) !important;
     width: calc(100% - 24px) !important; box-sizing: border-box !important;
   }
+
+  /* Flatten toolbar so its children participate in grid */
   .action-pad .toolbar{ display:contents !important; }
   .action-pad > div[style*="height:8px"]{ display:none !important; }
-  .action-pad .footer-status{ grid-column:1/-1 !important; padding:6px 8px !important; margin:0 0 4px 0 !important; font-size:12.5px !important; }
-  .btn{ padding:8px 8px !important; font-size:12.5px !important; border-radius:9px !important; min-width:auto !important; box-shadow:0 3px 8px rgba(0,0,0,.22) !important; }
 
+  /* Status pill spans full width on top row */
+  .action-pad .footer-status{
+    grid-column:1 / -1 !important;
+    padding:6px 8px !important;
+    margin:0 0 4px 0 !important;
+    font-size:12.5px !important;
+  }
+
+  /* Buttons - compact */
+  .btn{
+    padding:8px 8px !important;
+    font-size:12.5px !important;
+    border-radius:9px !important;
+    min-width:auto !important;
+    box-shadow:0 3px 8px rgba(0,0,0,.22) !important;
+  }
+
+  /* --- Custom placement (row numbers start after the status pill) --- */
+  /* Column 1: CLEAR vertical spanning both rows */
+  #btnClear{
+    grid-column:1 !important;
+    grid-row:2 / span 2 !important;
+    writing-mode: vertical-rl !important;
+    transform: rotate(180deg) !important;
+    text-align:center !important;
+    letter-spacing:1px !important;
+    padding:10px 6px !important;
+  }
+
+  /* Column 2: DOUBLE (row2), SPLIT (row3) vertically stacked */
+  #btnDouble{ grid-column:2 !important; grid-row:2 !important; }
+  #btnSplit{ grid-column:2 !important; grid-row:3 !important; }
+
+  /* Row 2 (main controls) */
+  #btnRebet{ grid-column:3 !important; grid-row:2 !important; }
+  #btnDeal{ grid-column:4 !important; grid-row:2 !important; }
+  #btnNewRound{ grid-column:4 !important; grid-row:2 !important; } /* when visible */
+  #btnHit{ grid-column:5 !important; grid-row:2 !important; }
+  #btnStand{ grid-column:6 !important; grid-row:2 !important; }
+
+  /* Row 3 (secondary controls) */
+  #btnSurrender{ grid-column:4 !important; grid-row:3 !important; }
+  #btnContinue{ grid-column:5 !important; grid-row:3 !important; }
+  #btnEvenMoney{ grid-column:3 !important; grid-row:3 !important; }
+  #btnInsurance{ grid-column:6 !important; grid-row:3 !important; }
+
+  /* Chip rack – keep 30% smaller and centered; no clipping on edges */
   .chips{
     position:absolute !important;
     left:50% !important; right:auto !important; transform:translateX(-50%) !important;
@@ -28,7 +82,9 @@
   }
   .chip{ width:35px !important; height:35px !important; border-width:3px !important; font-size:11px !important; }
 
+  /* Seat & banner offsets from pads remain consistent */
   .seat-area{ bottom: calc(env(safe-area-inset-bottom,0px) + var(--chipH) + var(--padH) + 8px) !important; }
   .info-banner{ bottom: calc(env(safe-area-inset-bottom,0px) + var(--chipH) + var(--padH) + 18px) !important; }
+
   .pile{ min-height:92px !important; }
 }
